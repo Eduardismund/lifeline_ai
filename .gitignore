@@ -241,3 +241,5 @@ dmypy.json
 *.h5
 *.model
 *.weights
+
+aws-lambda-functions

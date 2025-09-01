@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/**").permitAll()
                 .requestMatchers("/api/relationship-bonds/**").permitAll()  // For now, permit all
+                .requestMatchers("/api/evidence-file/**").permitAll()  // For now, permit all
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             );

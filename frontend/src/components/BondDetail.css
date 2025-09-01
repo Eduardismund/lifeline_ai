@@ -1,0 +1,225 @@
+.bond-detail {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-header {
+  padding: 30px 40px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.bond-title h1 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.bond-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.relationship-type {
+  color: #666;
+  font-size: 14px;
+  background: #f5f5f5;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: white;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.delete-btn {
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.delete-btn:hover {
+  opacity: 0.8;
+}
+
+.detail-content {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-section {
+  margin-bottom: 40px;
+  flex-shrink: 0;
+}
+
+.evidence-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.info-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 18px;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 8px;
+}
+
+.info-grid {
+  margin-bottom: 20px;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-weight: 600;
+  color: #666;
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.value {
+  color: #333;
+}
+
+.description {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.description h4 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.description p {
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.evidence-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 18px;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.files-list {
+  margin-top: 20px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.no-files {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background: #fafafa;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.file-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.file-meta span {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.file-type {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.file-status {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.file-date {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.file-context {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 5px;
+}
+
+.delete-file-btn {
+  padding: 6px 12px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.delete-file-btn:hover {
+  opacity: 0.8;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c00;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 15px 0;
+}

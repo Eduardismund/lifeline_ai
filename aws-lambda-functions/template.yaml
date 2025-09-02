@@ -1,0 +1,470 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  LifelineAI Evidence Processing System - AWS SDK v3 Implementation
+Transform:
+  - AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Timeout: 30
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+
+Parameters:
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    Description: CloudWatch logs retention period in days
+
+Resources:
+  # DynamoDB table for evidence files
+  EvidenceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-evidence-files"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Application
+          Value: LifelineAI
+        - Key: Environment
+          Value: Production
+
+  # S3 Bucket for evidence files with EventBridge enabled
+  EvidenceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - HEAD
+            AllowedOrigins:
+              - "*"
+            MaxAge: 3000
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldFiles
+            Status: Enabled
+            ExpirationInDays: 365
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Application
+          Value: LifelineAI
+        - Key: Environment
+          Value: Production
+
+  # Function: Generate presigned URLs for evidence upload
+  PresignedUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-PresignedUrlFunction"
+      Handler: src/handlers/presigned-url.presignedUrlHandler
+      MemorySize: 128
+      Description: Generate presigned URLs for direct S3 uploads (AWS SDK v3)
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref EvidenceBucket
+      Environment:
+        Variables:
+          EVIDENCE_BUCKET: !Ref EvidenceBucket
+      Events:
+        PresignedApi:
+          Type: Api
+          Properties:
+            Path: /presigned-url
+            Method: post
+        PresignedOptions:
+          Type: Api
+          Properties:
+            Path: /presigned-url
+            Method: options
+
+  # Function: Check evidence processing status
+  EvidenceStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-EvidenceStatusFunction"
+      Handler: src/handlers/evidence-status.evidenceStatusHandler
+      MemorySize: 128
+      Description: Check evidence processing status (AWS SDK v3)
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EvidenceTable
+      Environment:
+        Variables:
+          EVIDENCE_TABLE: !Ref EvidenceTable
+      Events:
+        EvidenceStatusApi:
+          Type: Api
+          Properties:
+            Path: /evidence/{evidenceId}/status
+            Method: get
+        EvidenceStatusOptions:
+          Type: Api
+          Properties:
+            Path: /evidence/{evidenceId}/status
+            Method: options
+
+  # Function: Generate presigned URLs for downloading files
+  DownloadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-DownloadUrlFunction"
+      Handler: src/handlers/download-url.downloadUrlHandler
+      MemorySize: 128
+      Description: Generate presigned URLs for downloading evidence files
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref EvidenceBucket
+      Environment:
+        Variables:
+          EVIDENCE_BUCKET: !Ref EvidenceBucket
+      Events:
+        DownloadUrlApi:
+          Type: Api
+          Properties:
+            Path: /download-url
+            Method: post
+        DownloadUrlOptions:
+          Type: Api
+          Properties:
+            Path: /download-url
+            Method: options
+
+  # Function: Process S3 evidence file uploads
+  EvidenceFileProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-EvidenceFileProcessorFunction"
+      Handler: src/handlers/evidence-file-processor.evidenceFileProcessor
+      MemorySize: 256
+      Timeout: 60
+      Description: Process S3 evidence file uploads and route to appropriate services
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EvidenceTable
+        - S3ReadPolicy:
+            BucketName: !Ref EvidenceBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - events:PutEvents
+              Resource: "*"
+      Environment:
+        Variables:
+          EVIDENCE_BUCKET: !Ref EvidenceBucket
+          EVIDENCE_TABLE: !Ref EvidenceTable
+
+  # Function: Start transcription for audio/video evidence
+  EvidenceTranscriptionStarterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-EvidenceTranscriptionStarterFunction"
+      Handler: src/handlers/evidence-transcription-starter.evidenceTranscriptionStarter
+      MemorySize: 256
+      Timeout: 60
+      Description: Start Amazon Transcribe jobs for evidence audio/video files
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EvidenceTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - transcribe:StartTranscriptionJob
+                - transcribe:GetTranscriptionJob
+                - transcribe:ListTranscriptionJobs
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource: !Sub "arn:aws:s3:::${EvidenceBucket}/*"
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+                - s3:GetBucketLocation
+              Resource: !Sub "arn:aws:s3:::${EvidenceBucket}"
+      Environment:
+        Variables:
+          EVIDENCE_BUCKET: !Ref EvidenceBucket
+          EVIDENCE_TABLE: !Ref EvidenceTable
+
+  # Function: Handle transcription completion for evidence
+  EvidenceTranscriptionCompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-EvidenceTranscriptionCompleteFunction"
+      Handler: src/handlers/evidence-transcription-complete.evidenceTranscriptionComplete
+      MemorySize: 512
+      Timeout: 300
+      Description: Process completed transcription jobs for evidence files
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EvidenceTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+              Resource: !Sub "arn:aws:s3:::${EvidenceBucket}/*"
+            - Effect: Allow
+              Action:
+                - transcribe:GetTranscriptionJob
+              Resource: "*"
+      Environment:
+        Variables:
+          EVIDENCE_BUCKET: !Ref EvidenceBucket
+          EVIDENCE_TABLE: !Ref EvidenceTable
+
+  # Function: Process images with Rekognition
+  EvidenceRekognitionStarterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-EvidenceRekognitionStarterFunction"
+      Handler: src/handlers/evidence-rekognition-starter.evidenceRekognitionStarter
+      MemorySize: 512
+      Timeout: 120
+      Description: Process evidence images using AWS Rekognition
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EvidenceTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - rekognition:DetectText
+                - rekognition:DetectLabels
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+              Resource: !Sub "arn:aws:s3:::${EvidenceBucket}/*"
+      Environment:
+        Variables:
+          EVIDENCE_BUCKET: !Ref EvidenceBucket
+          EVIDENCE_TABLE: !Ref EvidenceTable
+
+  # EventBridge Rule for S3 evidence uploads
+  EvidenceUploadEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "${AWS::StackName}-EvidenceUploadEventRule"
+      Description: Trigger when evidence files are uploaded to evidence folder
+      EventPattern:
+        source: [ "aws.s3" ]
+        detail-type: [ "Object Created" ]
+        detail:
+          bucket:
+            name: [ !Ref EvidenceBucket ]
+          object:
+            key:
+              - prefix: "evidence/"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt EvidenceFileProcessorFunction.Arn
+          Id: "EvidenceUploadTarget"
+
+  # EventBridge Rule for evidence transcription trigger
+  EvidenceTranscriptionTriggerRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "${AWS::StackName}-EvidenceTranscriptionTriggerRule"
+      Description: Trigger transcription when evidence is ready
+      EventPattern:
+        source:
+          - "lifeline.ai"
+        detail-type:
+          - "Evidence Ready for Transcription"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt EvidenceTranscriptionStarterFunction.Arn
+          Id: "EvidenceTranscriptionTriggerTarget"
+
+  # EventBridge Rule for evidence Rekognition trigger
+  EvidenceRekognitionTriggerRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "${AWS::StackName}-EvidenceRekognitionTriggerRule"
+      Description: Trigger Rekognition when evidence image is ready
+      EventPattern:
+        source:
+          - "lifeline.ai"
+        detail-type:
+          - "Evidence Ready for Rekognition"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt EvidenceRekognitionStarterFunction.Arn
+          Id: "EvidenceRekognitionTriggerTarget"
+
+  # EventBridge Rule for transcription completion
+  EvidenceTranscriptionCompleteEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "${AWS::StackName}-EvidenceTranscriptionCompleteEventRule"
+      Description: Trigger when evidence transcription completes
+      EventPattern:
+        source:
+          - "aws.transcribe"
+        detail-type:
+          - "Transcribe Job State Change"
+        detail:
+          TranscriptionJobStatus:
+            - "COMPLETED"
+            - "FAILED"
+          TranscriptionJobName:
+            - prefix: "evidence-transcription-"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt EvidenceTranscriptionCompleteFunction.Arn
+          Id: "EvidenceTranscriptionCompleteTarget"
+
+  # Lambda permissions for EventBridge
+  EvidenceUploadEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EvidenceFileProcessorFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EvidenceUploadEventRule.Arn
+
+  EvidenceTranscriptionTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EvidenceTranscriptionStarterFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EvidenceTranscriptionTriggerRule.Arn
+
+  EvidenceRekognitionTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EvidenceRekognitionStarterFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EvidenceRekognitionTriggerRule.Arn
+
+  EvidenceTranscriptionCompleteEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EvidenceTranscriptionCompleteFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EvidenceTranscriptionCompleteEventRule.Arn
+
+  # CloudWatch Log Groups with retention
+  PresignedUrlLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${PresignedUrlFunction}"
+      RetentionInDays: !Ref LogRetentionDays
+
+  EvidenceFileProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${EvidenceFileProcessorFunction}"
+      RetentionInDays: !Ref LogRetentionDays
+
+  EvidenceTranscriptionStarterLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${EvidenceTranscriptionStarterFunction}"
+      RetentionInDays: !Ref LogRetentionDays
+
+  EvidenceTranscriptionCompleteLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${EvidenceTranscriptionCompleteFunction}"
+      RetentionInDays: !Ref LogRetentionDays
+
+  EvidenceRekognitionStarterLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${EvidenceRekognitionStarterFunction}"
+      RetentionInDays: !Ref LogRetentionDays
+
+Outputs:
+  # API Endpoints
+  ApiGatewayEndpoint:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiEndpoint"
+
+  PresignedUrlEndpoint:
+    Description: "Presigned URL endpoint for evidence upload"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/presigned-url"
+    Export:
+      Name: !Sub "${AWS::StackName}-PresignedUrlEndpoint"
+
+  # Resource Names
+  EvidenceBucketName:
+    Description: "S3 Bucket for evidence files"
+    Value: !Ref EvidenceBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-EvidenceBucket"
+
+  EvidenceTableName:
+    Description: "DynamoDB table name for evidence files"
+    Value: !Ref EvidenceTable
+    Export:
+      Name: !Sub "${AWS::StackName}-EvidenceTable"
+
+  # Function Names for debugging
+  EvidenceFileProcessorFunctionName:
+    Description: "Evidence file processor function name"
+    Value: !Ref EvidenceFileProcessorFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-EvidenceFileProcessorFunction"
+
+  EvidenceTranscriptionStarterFunctionName:
+    Description: "Evidence transcription starter function name"
+    Value: !Ref EvidenceTranscriptionStarterFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-EvidenceTranscriptionStarterFunction"
+
+  EvidenceTranscriptionCompleteFunctionName:
+    Description: "Evidence transcription complete function name"
+    Value: !Ref EvidenceTranscriptionCompleteFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-EvidenceTranscriptionCompleteFunction"
+
+  EvidenceRekognitionStarterFunctionName:
+    Description: "Evidence Rekognition starter function name"
+    Value: !Ref EvidenceRekognitionStarterFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-EvidenceRekognitionStarterFunction"

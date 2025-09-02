@@ -61,4 +61,13 @@ public class EvidenceFileService {
         evidenceFileRepository.deleteById(id);
     }
 
+    public String generateDownloadUrl(Long id) {
+        EvidenceFile evidenceFile = evidenceFileRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Evidence file not found"));
+        
+        // For now, return the S3 URL directly
+        // In production, you'd generate a presigned URL here
+        return evidenceFile.getS3Url();
+    }
+
 }

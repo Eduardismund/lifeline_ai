@@ -33,8 +33,8 @@ const CreateBondModal: React.FC<Props> = ({ onClose, onCreate }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Add New Relationship</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <h2><i className="fas fa-seedling"></i> Add New Relationship</h2>
+          <button className="close-btn" onClick={onClose}><i className="fas fa-times"></i></button>
         </div>
         
         <form onSubmit={handleSubmit}>

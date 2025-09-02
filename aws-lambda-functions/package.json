@@ -1,0 +1,23 @@
+{
+    "name": "jira-meeting-tasks",
+    "description": "Smart Meeting Intelligence & Action Engine",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@aws-sdk/client-bedrock-runtime": "^3.826.0",
+        "@aws-sdk/client-dynamodb": "^3.398.0",
+        "@aws-sdk/client-eventbridge": "^3.826.0",
+        "@aws-sdk/client-s3": "^3.826.0",
+        "@aws-sdk/client-secrets-manager": "^3.830.0",
+        "@aws-sdk/client-transcribe": "^3.826.0",
+        "@aws-sdk/lib-dynamodb": "^3.398.0",
+        "@aws-sdk/s3-request-presigner": "^3.826.0",
+        "@aws-sdk/util-dynamodb": "^3.398.0",
+        "axios": "^1.10.0",
+        "form-data": "^4.0.4",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "aws-sdk-client-mock": "^2.0.0"
+    }
+}

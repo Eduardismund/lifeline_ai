@@ -66,7 +66,12 @@ const Dashboard: React.FC = () => {
   };
 
   const handleSelectBond = (bond: RelationshipBond) => {
-    setSelectedBond(bond);
+    // If clicking the same bond, deselect it
+    if (selectedBond?.id === bond.id) {
+      setSelectedBond(null);
+    } else {
+      setSelectedBond(bond);
+    }
   };
 
   const handleLogout = () => {
@@ -77,8 +82,47 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>LifelineAI Dashboard</h1>
+        <div className="header-left">
+          <h1><i className="fas fa-heart-pulse"></i> LifelineAI Dashboard</h1>
+          {selectedBond && (
+            <div className="selected-bond-info">
+              <span className="separator">|</span>
+              <h2>{selectedBond.partnerName}</h2>
+              <span className="relationship-type">
+                {selectedBond.relationshipType?.replace(/_/g, ' ')}
+              </span>
+              <span 
+                className="status-badge"
+                style={{ 
+                  backgroundColor: selectedBond.currentStatus === 'ONGOING' ? '#4caf50' :
+                                 selectedBond.currentStatus === 'ENDED' ? '#9e9e9e' :
+                                 selectedBond.currentStatus === 'COMPLICATED' ? '#ff9800' :
+                                 '#f44336'
+                }}
+              >
+                {selectedBond.currentStatus}
+              </span>
+            </div>
+          )}
+        </div>
         <div className="header-actions">
+          {selectedBond && selectedBond.analysisStatus === 'ANALYZED' && (
+            <div className="risk-indicator">
+              <span className="risk-label">Risk Level:</span>
+              <div className="risk-level-bar">
+                <div className="risk-level-fill" style={{ width: '65%', background: '#ff9800' }}></div>
+              </div>
+              <span className="risk-value">Medium</span>
+            </div>
+          )}
+          {selectedBond && (
+            <button 
+              onClick={() => handleDeleteBond(selectedBond.id!)}
+              className="end-tracking-btn"
+            >
+              End Tracking
+            </button>
+          )}
           <span className="user-name">Welcome, {user?.firstName}</span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
@@ -129,18 +173,24 @@ const Dashboard: React.FC = () => {
             />
           ) : (
             <div className="welcome-panel">
-              <h2>Welcome to LifelineAI</h2>
-              <p>Select a relationship from the left panel to view details and upload evidence files.</p>
-              <p>This platform helps you track and analyze relationship patterns to identify potential toxic behaviors.</p>
+              <div className="welcome-icon"><i className="fas fa-shield-heart"></i></div>
+              <h2>Your Safe Space</h2>
+              <p className="welcome-subtitle">You deserve healthy, respectful relationships.</p>
+              <p>LifelineAI helps you understand relationship dynamics by documenting interactions and identifying concerning patterns. Your privacy and safety are our priority.</p>
+              
               <div className="features">
-                <h3>Features:</h3>
+                <h3>How We Support You:</h3>
                 <ul>
-                  <li>Track multiple relationships</li>
-                  <li>Upload evidence files (text, images, audio, video)</li>
-                  <li>AI-powered toxicity analysis</li>
-                  <li>Risk level assessment</li>
-                  <li>Pattern detection</li>
+                  <li>Confidential relationship tracking</li>
+                  <li>Secure evidence documentation</li>
+                  <li>Pattern recognition to identify concerns</li>
+                  <li>Risk assessment for your awareness</li>
+                  <li>Objective analysis without judgment</li>
                 </ul>
+              </div>
+              
+              <div className="support-note">
+                <p><strong>Remember:</strong> Documenting is the first step toward understanding. You're not alone in this journey.</p>
               </div>
             </div>
           )}

@@ -6,25 +6,127 @@
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c9885 0%, #5a7c65 100%);
   color: white;
-  padding: 20px 30px;
+  padding: 20px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-left: 30px;
+  flex: 1;
 }
 
 .dashboard-header h1 {
   margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-header h1 i {
   font-size: 28px;
+}
+
+.selected-bond-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-left: calc(70px);
+}
+
+.separator {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 24px;
+}
+
+.selected-bond-info h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.selected-bond-info .relationship-type {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+}
+
+.selected-bond-info .status-badge {
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 20px;
+  padding-right: 30px;
+}
+
+.risk-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.risk-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.risk-level-bar {
+  width: 100px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.risk-level-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 10px;
+}
+
+.risk-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
+.end-tracking-btn {
+  padding: 8px 16px;
+  background: rgba(255, 67, 54, 0.9);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.end-tracking-btn:hover {
+  background: rgba(255, 67, 54, 1);
+  transform: translateY(-1px);
 }
 
 .user-name {
@@ -74,16 +176,19 @@
 
 .create-bond-btn {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c9885 0%, #5a7c65 100%);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(90, 124, 101, 0.2);
 }
 
 .create-bond-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(90, 124, 101, 0.3);
 }
 
 .error-message {
@@ -122,8 +227,8 @@
 }
 
 .bond-item.selected {
-  background-color: #e3f2fd;
-  border-right: 3px solid #667eea;
+  background-color: #e8f5e9;
+  border-right: 3px solid #7c9885;
 }
 
 .bond-name {
@@ -154,19 +259,48 @@
 .welcome-panel {
   padding: 60px 40px;
   text-align: center;
-  color: #666;
+  color: #5a6c7d;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.welcome-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  color: #7c9885;
 }
 
 .welcome-panel h2 {
-  color: #333;
-  margin-bottom: 20px;
-  font-size: 24px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.welcome-subtitle {
+  font-size: 18px;
+  color: #7c9885;
+  font-weight: 500;
+  margin-bottom: 25px !important;
 }
 
 .welcome-panel p {
   margin-bottom: 15px;
-  line-height: 1.6;
+  line-height: 1.7;
   font-size: 16px;
+}
+
+.support-note {
+  margin-top: 40px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f7f2 0%, #e8f5e9 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(124, 152, 133, 0.15);
+}
+
+.support-note p {
+  margin: 0;
+  color: #5a7c65;
 }
 
 .features {
@@ -197,6 +331,6 @@
   content: "✓";
   position: absolute;
   left: 0;
-  color: #667eea;
+  color: #7c9885;
   font-weight: bold;
 }

@@ -34,9 +34,6 @@ public class EvidenceFile {
     @Column(nullable = false)
     private String s3Url;
 
-    @Column(nullable = false)
-    private String s3Key;
-
     @Enumerated(EnumType.STRING)
     private FileType fileType;
 

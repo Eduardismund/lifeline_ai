@@ -242,4 +242,3 @@ dmypy.json
 *.model
 *.weights
 
-aws-lambda-functions

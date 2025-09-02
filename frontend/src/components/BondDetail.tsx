@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RelationshipBond, EvidenceFile } from '../types/RelationshipBond';
 import { relationshipService } from '../services/relationshipService';
+import AWSService from '../services/awsService';
 import FileUpload from './FileUpload';
 import './BondDetail.css';
 
@@ -13,6 +14,7 @@ interface Props {
 const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
   const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
   const [error, setError] = useState('');
+  const [playableUrls, setPlayableUrls] = useState<{ [fileId: number]: string }>({});
 
   useEffect(() => {
     if (bond.id) {
@@ -56,6 +58,18 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
     }
   };
 
+  const handleLoadMedia = async (file: EvidenceFile) => {
+    if (!file.id || playableUrls[file.id]) return; // Already loaded
+    
+    try {
+      const playableUrl = await AWSService.createPlayableUrl(file.s3Url, file.fileName);
+      setPlayableUrls(prev => ({ ...prev, [file.id!]: playableUrl }));
+    } catch (err) {
+      console.error('Error loading media:', err);
+      setError('Failed to load media file');
+    }
+  };
+
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'ONGOING': return '#4caf50';
@@ -68,32 +82,19 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
 
   return (
     <div className="bond-detail">
-      <div className="detail-header">
-        <div className="bond-title">
-          <h1>{bond.partnerName}</h1>
-          <div className="bond-meta">
-            <span className="relationship-type">
-              {bond.relationshipType?.replace(/_/g, ' ')}
-            </span>
-            <span 
-              className="status-badge"
-              style={{ backgroundColor: getStatusColor(bond.currentStatus) }}
-            >
-              {bond.currentStatus}
-            </span>
-          </div>
-        </div>
-        <button 
-          onClick={() => bond.id && onDelete(bond.id)}
-          className="delete-btn"
-        >
-          Delete Relationship
-        </button>
-      </div>
-
       <div className="detail-content">
+        {evidenceFiles.length > 3 && (
+          <div className="support-message">
+            <span className="support-icon"><i className="fas fa-hands-holding-heart"></i></span>
+            <div>
+              <strong>You're doing great by documenting this.</strong>
+              <p>Keeping records is an important step in understanding your situation. Remember, you deserve healthy relationships.</p>
+            </div>
+          </div>
+        )}
+        
         <div className="info-section">
-          <h3>Relationship Information</h3>
+          <h3><i className="fas fa-clipboard-list"></i> Relationship Information</h3>
           <div className="info-grid">
             <div className="info-row">
               <span className="label">Analysis Status:</span>
@@ -126,7 +127,7 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
         </div>
 
         <div className="evidence-section">
-          <h3>Evidence Files ({evidenceFiles.length})</h3>
+          <h3><i className="fas fa-folder-open"></i> Evidence Files ({evidenceFiles.length})</h3>
           
           <FileUpload onUpload={handleFileUpload} />
           
@@ -151,6 +152,46 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
                     </div>
                     {file.evidenceContext && (
                       <div className="file-context">{file.evidenceContext}</div>
+                    )}
+                    {(file.fileType === 'AUDIO' || file.fileType === 'VIDEO' || file.fileType === 'IMAGE') && (
+                      <div className="media-section">
+                        {!playableUrls[file.id!] ? (
+                          <button
+                            onClick={() => handleLoadMedia(file)}
+                            className="play-btn"
+                          >
+                            {file.fileType === 'AUDIO' ? (
+                              <><i className="fas fa-music"></i> Load Audio</>
+                            ) : file.fileType === 'VIDEO' ? (
+                              <><i className="fas fa-video"></i> Load Video</>
+                            ) : (
+                              <><i className="fas fa-image"></i> Load Image</>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="media-player">
+                            {file.fileType === 'AUDIO' && (
+                              <audio controls style={{ width: '100%', maxWidth: '400px' }}>
+                                <source src={playableUrls[file.id!]} type={file.mimeType} />
+                                Your browser does not support the audio element.
+                              </audio>
+                            )}
+                            {file.fileType === 'VIDEO' && (
+                              <video controls style={{ width: '100%', maxWidth: '600px' }}>
+                                <source src={playableUrls[file.id!]} type={file.mimeType} />
+                                Your browser does not support the video element.
+                              </video>
+                            )}
+                            {file.fileType === 'IMAGE' && (
+                              <img 
+                                src={playableUrls[file.id!]} 
+                                alt={file.fileName} 
+                                style={{ maxWidth: '100%', height: 'auto', border: '1px solid #ddd' }} 
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   <button

@@ -43,5 +43,10 @@ export const relationshipService = {
 
   async deleteEvidence(id: number): Promise<void> {
     await api.delete(`/evidence-file/${id}`);
+  },
+
+  async getFileDownloadUrl(fileId: number): Promise<string> {
+    const response = await api.get<string>(`/evidence-file/${fileId}/download-url`);
+    return response.data;
   }
 };

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { EvidenceFile } from '../types/RelationshipBond';
+import AWSService from '../services/awsService';
 import './FileUpload.css';
 
 interface Props {
@@ -11,6 +12,7 @@ const FileUpload: React.FC<Props> = ({ onUpload }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [evidenceContext, setEvidenceContext] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getFileType = (mimeType: string): 'TEXT' | 'IMAGE' | 'AUDIO' | 'VIDEO' => {
@@ -61,31 +63,49 @@ const FileUpload: React.FC<Props> = ({ onUpload }) => {
     if (!selectedFile) return;
 
     setUploading(true);
+    setProcessingStatus('Uploading to AWS S3...');
     
     try {
-      // Extract metadata from the file
+      // Step 1: Upload to S3 and wait for AWS processing to complete
+      console.log('Uploading file to AWS S3...');
+      
+      // Show different messages during the process
+      setTimeout(() => setProcessingStatus('File uploaded, processing...'), 2000);
+      setTimeout(() => setProcessingStatus('Extracting text/metadata...'), 7000);
+      
+      const awsResult = await AWSService.processEvidence(selectedFile);
+      
+      // Step 2: Prepare evidence data with AWS results (including extracted text)
       const evidence: Partial<EvidenceFile> = {
         fileName: selectedFile.name,
         fileType: getFileType(selectedFile.type),
         mimeType: selectedFile.type,
         evidenceDate: getFileDate(selectedFile),
-        evidenceContext: evidenceContext.trim() || undefined,
-        // For now, use dummy S3 URLs since we're not actually uploading
-        s3Url: `https://dummy-bucket.s3.amazonaws.com/evidence/${Date.now()}_${selectedFile.name}`,
-        s3Key: `evidence/${Date.now()}_${selectedFile.name}`,
-        processingStatus: 'UPLOADED',
+        evidenceContext: evidenceContext.trim() || null,
+        s3Url: awsResult.s3Url,
+        extractedText: awsResult.extractedText || null,
+        processingStatus: 'EXTRACTED', // Processing completed
       };
 
+      // Step 3: Send complete evidence data to backend
+      setProcessingStatus('Saving to database...');
+      console.log('Saving evidence to backend...');
+      console.log('Evidence data being sent:', JSON.stringify(evidence, null, 2));
       await onUpload(evidence);
       
       // Reset form
       setSelectedFile(null);
       setEvidenceContext('');
+      setProcessingStatus('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
+      alert('Evidence uploaded successfully!');
     } catch (err) {
       console.error('Upload failed:', err);
+      alert('Failed to upload evidence. Please try again.');
+      setProcessingStatus('');
     } finally {
       setUploading(false);
     }
@@ -169,7 +189,7 @@ const FileUpload: React.FC<Props> = ({ onUpload }) => {
               className="upload-btn"
               disabled={uploading}
             >
-              {uploading ? 'Uploading...' : 'Upload Evidence'}
+              {uploading ? (processingStatus || 'Processing...') : 'Upload Evidence'}
             </button>
           </div>
         </div>

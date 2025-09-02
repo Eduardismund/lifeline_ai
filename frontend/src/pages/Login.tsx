@@ -63,8 +63,12 @@ const Login: React.FC = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1 className="login-title">LifelineAI</h1>
-        <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
+        <h1 className="login-title"><i className="fas fa-heart-pulse"></i> LifelineAI</h1>
+        <h2>{isLogin ? 'Welcome Back' : 'Create Your Safe Space'}</h2>
+        
+        <div className="welcome-text">
+          <p>A secure platform to document and understand relationship patterns for your safety and wellbeing.</p>
+        </div>
         
         {error && <div className="error-message">{error}</div>}
         
@@ -72,6 +76,8 @@ const Login: React.FC = () => {
           {!isLogin && (
             <>
               <div className="form-group">
+                <label>First Name</label>
+                <i className="fas fa-user input-icon"></i>
                 <input
                   type="text"
                   name="firstName"
@@ -83,6 +89,8 @@ const Login: React.FC = () => {
                 />
               </div>
               <div className="form-group">
+                <label>Last Name</label>
+                <i className="fas fa-user input-icon"></i>
                 <input
                   type="text"
                   name="lastName"
@@ -97,6 +105,8 @@ const Login: React.FC = () => {
           )}
           
           <div className="form-group">
+            <label>Email Address</label>
+            <i className="fas fa-envelope input-icon"></i>
             <input
               type="email"
               name="email"
@@ -109,6 +119,8 @@ const Login: React.FC = () => {
           </div>
           
           <div className="form-group">
+            <label>Password</label>
+            <i className="fas fa-lock input-icon"></i>
             <input
               type="password"
               name="password"

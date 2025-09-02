@@ -55,4 +55,10 @@ public class EvidenceFileController {
         List<EvidenceFile> files = evidenceFileService.getAllEvidenceFilesByRelationshipBondId(relationshipBondId);
         return ResponseEntity.ok(files);
     }
+    
+    @GetMapping("/{id}/download-url")
+    public ResponseEntity<String> getDownloadUrl(@PathVariable Long id) {
+        String downloadUrl = evidenceFileService.generateDownloadUrl(id);
+        return ResponseEntity.ok(downloadUrl);
+    }
 }

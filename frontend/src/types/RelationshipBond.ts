@@ -39,7 +39,6 @@ export interface EvidenceFile {
   id?: number;
   fileName: string;
   s3Url: string;
-  s3Key: string;
   fileType: FileType;
   evidenceContext?: string;
   evidenceDate?: string;
@@ -53,8 +52,8 @@ export type FileType = 'TEXT' | 'IMAGE' | 'AUDIO' | 'VIDEO';
 
 export type FileProcessingStatus = 
   | 'UPLOADED'
-  | 'PROCESSING'
-  | 'PROCESSED'
+  | 'EXTRACTING'
+  | 'EXTRACTED'
   | 'FAILED';
 
 export interface BondToxicityAnalysis {

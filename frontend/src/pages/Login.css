@@ -7,95 +7,168 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c9885 0%, #5a7c65 100%);
 }
 
 .login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+  padding: 3rem 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 400px;
+  max-width: 440px;
+  border: 1px solid rgba(124, 152, 133, 0.1);
+}
+
+.login-icon {
+  text-align: center;
+  font-size: 48px;
+  color: #7c9885;
+  margin-bottom: 1rem;
 }
 
 .login-title {
   text-align: center;
-  color: #667eea;
+  color: #2c3e50;
   margin-bottom: 0.5rem;
   font-size: 2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.login-title i {
+  color: #7c9885;
+  font-size: 32px;
 }
 
 .login-card h2 {
   text-align: center;
-  color: #333;
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  color: #5a6c7d;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  font-weight: 400;
 }
 
 .error-message {
-  background-color: #fee;
-  color: #c00;
-  padding: 0.75rem;
-  border-radius: 5px;
-  margin-bottom: 1rem;
+  background-color: #fff5f5;
+  color: #d32f2f;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
   text-align: center;
+  border: 1px solid rgba(211, 47, 47, 0.1);
+  font-size: 14px;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #5a6c7d;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .form-group input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  padding: 12px 16px;
+  padding-left: 44px;
+  border: 2px solid #e8ebe9;
+  border-radius: 10px;
+  font-size: 15px;
+  background: white;
+  transition: all 0.3s ease;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #7c9885;
+  background: #fafbfc;
+  box-shadow: 0 0 0 4px rgba(124, 152, 133, 0.1);
+}
+
+.form-group .input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7c9885;
+  font-size: 16px;
+  margin-top: 14px;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 14px;
+  background: linear-gradient(135deg, #7c9885 0%, #5a7c65 100%);
   color: white;
   border: none;
-  border-radius: 5px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(90, 124, 101, 0.2);
+  margin-top: 0.5rem;
 }
 
 .submit-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(90, 124, 101, 0.3);
 }
 
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .toggle-form {
   text-align: center;
-  margin-top: 1rem;
-  color: #666;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e8ebe9;
+  color: #5a6c7d;
+  font-size: 14px;
 }
 
 .toggle-btn {
   background: none;
   border: none;
-  color: #667eea;
+  color: #7c9885;
   cursor: pointer;
-  text-decoration: underline;
-  font-size: 1rem;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .toggle-btn:hover {
-  color: #764ba2;
+  color: #5a7c65;
+  text-decoration: underline;
+}
+
+.welcome-text {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0f7f2 0%, #e8f5e9 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(124, 152, 133, 0.15);
+}
+
+.welcome-text p {
+  margin: 0;
+  color: #5a7c65;
+  font-size: 14px;
+  line-height: 1.5;
 }

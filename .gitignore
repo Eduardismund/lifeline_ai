@@ -242,3 +242,6 @@ dmypy.json
 *.model
 *.weights
 
+ai-python/venv
+ai-python/venv_windows
+

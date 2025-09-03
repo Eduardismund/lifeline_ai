@@ -3,3 +3,6 @@ uvicorn==0.24.0
 pydantic==2.5.0
 requests==2.31.0
 python-dotenv==1.0.0
+groq==0.9.0
+weasyprint==62.3
+html5lib==1.1

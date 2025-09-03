@@ -31,5 +31,15 @@ export const authService = {
 
   isAuthenticated(): boolean {
     return !!localStorage.getItem('token');
+  },
+
+  async updateProfile(userId: number, profileData: Partial<User>): Promise<User> {
+    const response = await api.put<User>(`/users/${userId}`, profileData);
+    return response.data;
+  },
+
+  async fetchUserProfile(userId: number): Promise<User> {
+    const response = await api.get<User>(`/users/${userId}`);
+    return response.data;
   }
 };

@@ -79,6 +79,12 @@ public class UserService {
         user.setProfileDescription(updatedUser.getProfileDescription());
         user.setDateOfBirth(updatedUser.getDateOfBirth());
         
+        // Update medical conditions
+        if (updatedUser.getMedicalConditions() != null) {
+            user.getMedicalConditions().clear();
+            user.getMedicalConditions().addAll(updatedUser.getMedicalConditions());
+        }
+        
         return userRepository.save(user);
     }
     

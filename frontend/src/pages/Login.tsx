@@ -49,8 +49,9 @@ const Login: React.FC = () => {
           email: formData.email,
           password: formData.password,
         });
+        // Navigate to profile page to complete setup
         setTimeout(() => {
-          navigate('/dashboard', { replace: true });
+          navigate('/profile', { replace: true });
         }, 100);
       }
     } catch (err: any) {

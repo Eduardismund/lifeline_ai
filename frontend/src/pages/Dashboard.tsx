@@ -123,7 +123,9 @@ const Dashboard: React.FC = () => {
               End Tracking
             </button>
           )}
-          <span className="user-name">Welcome, {user?.firstName}</span>
+          <span className="user-name">
+            Welcome, <a href="/profile" onClick={(e) => { e.preventDefault(); navigate('/profile'); }} className="profile-link">{user?.firstName}</a>
+          </span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </header>

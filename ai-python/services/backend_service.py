@@ -1,0 +1,55 @@
+"""Service for interacting with Spring Boot backend"""
+
+import requests
+import json
+import logging
+from typing import Dict, Any, List
+from fastapi import HTTPException
+from config import BACKEND_BASE_URL
+
+logger = logging.getLogger(__name__)
+
+
+async def fetch_user_profile(user_id: int) -> Dict[str, Any]:
+    """Fetch user profile from Spring Boot backend"""
+    try:
+        url = f"{BACKEND_BASE_URL}/users/{user_id}"
+        logger.info(f"Fetching user profile from: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        logger.info(f"User profile retrieved: {json.dumps(data, indent=2)}")
+        return data
+    except requests.RequestException as e:
+        logger.error(f"Failed to fetch user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch user profile: {str(e)}")
+
+
+async def fetch_relationship_bond(relationship_id: int) -> Dict[str, Any]:
+    """Fetch relationship bond from Spring Boot backend"""
+    try:
+        url = f"{BACKEND_BASE_URL}/relationship-bonds/{relationship_id}"
+        logger.info(f"Fetching relationship bond from: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        logger.info(f"Relationship bond retrieved: {json.dumps(data, indent=2)}")
+        return data
+    except requests.RequestException as e:
+        logger.error(f"Failed to fetch relationship bond: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch relationship bond: {str(e)}")
+
+
+async def fetch_evidence_files(relationship_id: int) -> List[Dict[str, Any]]:
+    """Fetch evidence files from Spring Boot backend"""
+    try:
+        url = f"{BACKEND_BASE_URL}/evidence-file/relationship-bond/{relationship_id}"
+        logger.info(f"Fetching evidence files from: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        logger.info(f"Evidence files retrieved ({len(data)} files): {json.dumps(data, indent=2)}")
+        return data
+    except requests.RequestException as e:
+        logger.error(f"Failed to fetch evidence files: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch evidence files: {str(e)}")

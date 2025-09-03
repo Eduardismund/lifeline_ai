@@ -133,6 +133,20 @@
   font-size: 16px;
 }
 
+.profile-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+}
+
+.profile-link:hover {
+  border-bottom-color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
 .logout-btn {
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.2);

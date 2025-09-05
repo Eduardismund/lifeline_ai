@@ -159,6 +159,7 @@ lerna-debug.log*
 application-dev.properties
 secrets/
 config/local/
+.claude
 
 # Testing
 test-results/

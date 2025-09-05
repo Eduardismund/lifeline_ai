@@ -57,5 +57,9 @@ public class RelationshipBond {
     @JsonManagedReference("bond-analysis")
     private BondToxicityAnalysis analysis;
 
+    @OneToMany(mappedBy = "relationshipBond", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("bond-trusted-contacts")
+    private List<TrustedContact> trustedContacts = new ArrayList<>();
+
 }
 

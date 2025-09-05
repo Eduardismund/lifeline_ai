@@ -131,4 +131,32 @@ public class BondToxicityAnalysisController {
         }
         return ResponseEntity.notFound().build();
     }
+    
+    @PutMapping("/pdf-url/{relationshipBondId}")
+    public ResponseEntity<Map<String, Object>> savePdfUrl(
+        @PathVariable Long relationshipBondId,
+        @RequestBody Map<String, String> request
+    ) {
+        try {
+            BondToxicityAnalysis analysis = analysisRepository.findByRelationshipBondId(relationshipBondId)
+                .orElseThrow(() -> new RuntimeException("Analysis not found"));
+            
+            analysis.setGeneratedPdfS3Url(request.get("pdfUrl"));
+            analysis.setPdfGeneratedAt(LocalDateTime.now());
+            analysisRepository.save(analysis);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "PDF URL saved successfully");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Failed to save PDF URL: " + e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 }

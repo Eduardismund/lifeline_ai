@@ -31,6 +31,7 @@
 .upload-icon {
   font-size: 48px;
   margin-bottom: 15px;
+  color: #7c9885;
 }
 
 .drop-zone p {
@@ -90,17 +91,26 @@
 
 .context-section textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
+  padding: 0.75rem;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  font-size: 0.95rem;
   font-family: inherit;
   resize: vertical;
+  background: #f1f8e9;
+  color: #2e4d32;
+  transition: all 0.3s ease;
 }
 
 .context-section textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #7c9885;
+  background: #e8f5e9;
+  box-shadow: 0 0 0 2px rgba(124, 152, 133, 0.2);
+}
+
+.context-section textarea::placeholder {
+  color: #6a8470;
 }
 
 .upload-actions {

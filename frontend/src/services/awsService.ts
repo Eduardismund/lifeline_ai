@@ -202,6 +202,30 @@ export class AWSService {
     }
   }
   /**
+   * Upload file (blob) to S3 and return shareable URL
+   */
+  static async uploadFile(blob: Blob, fileName: string, mimeType: string): Promise<string> {
+    try {
+      // Convert blob to File for upload
+      const file = new File([blob], fileName, { type: mimeType });
+      
+      // Get presigned URL
+      const presignedData = await this.getPresignedUrl(fileName, mimeType, blob.size);
+      
+      // Upload to S3
+      await this.uploadToS3(presignedData.uploadUrl, file);
+      
+      // Return the S3 URL
+      const bucketName = 'evidence-evidencebucket-ypso6tx2mctt';
+      return `https://${bucketName}.s3.eu-central-1.amazonaws.com/${presignedData.key}`;
+      
+    } catch (error) {
+      console.error('Error uploading file to S3:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Create a playable URL for media files using presigned download URL
    */
   static async createPlayableUrl(s3Url: string, fileName?: string): Promise<string> {

@@ -1,3 +1,5 @@
+import AWSService from './awsService';
+
 const AI_API_URL = 'http://localhost:8002';
 const BACKEND_API_URL = 'http://localhost:8080';
 
@@ -245,7 +247,7 @@ export class AIService {
     };
   }
 
-  static async generatePdfReport(userId: number, relationshipBondId: number): Promise<void> {
+  static async generatePdfReport(userId: number, relationshipBondId: number): Promise<string> {
     try {
       const response = await fetch(`${AI_API_URL}/generate-pdf-report`, {
         method: 'POST',
@@ -264,7 +266,7 @@ export class AIService {
 
       // Get the filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'LifelineAI_Analysis_Report.pdf';
+      let filename = `LifelineAI_Report_${relationshipBondId}_${Date.now()}.pdf`;
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename=(.+)/);
         if (filenameMatch) {
@@ -272,7 +274,7 @@ export class AIService {
         }
       }
 
-      // Create blob and download
+      // Create blob and download locally
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -283,8 +285,68 @@ export class AIService {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Upload to S3 for sharing
+      const s3Url = await AWSService.uploadFile(blob, filename, 'application/pdf');
+      
+      // Create presigned download URL for sharing
+      const downloadUrl = await AWSService.createPlayableUrl(s3Url, filename);
+      
+      // Save S3 URL to backend
+      await this.savePdfUrlToBackend(relationshipBondId, s3Url);
+      
+      return downloadUrl;
     } catch (error) {
       console.error('Error generating PDF report:', error);
+      throw error;
+    }
+  }
+
+  static async savePdfUrlToBackend(relationshipBondId: number, s3Url: string): Promise<void> {
+    try {
+      const response = await fetch(`http://localhost:8080/api/bond-analysis/pdf-url/${relationshipBondId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pdfUrl: s3Url })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save PDF URL: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error saving PDF URL to backend:', error);
+      throw error;
+    }
+  }
+
+  static async generatePersonalizedEmail(userId: number, relationshipBondId: number, contactId: number): Promise<{
+    recipient_email: string;
+    partner_name: string;
+    user_name: string;
+    message_body: string;
+  }> {
+    try {
+      const response = await fetch(`${AI_API_URL}/generate-personalized-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          relationship_bond_id: relationshipBondId,
+          contact_id: contactId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate personalized email: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error generating personalized email:', error);
       throw error;
     }
   }

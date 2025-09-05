@@ -10,6 +10,7 @@ export interface RelationshipBond {
   lastUpdated?: string;
   evidenceFiles?: EvidenceFile[];
   analysis?: BondToxicityAnalysis;
+  trustedContacts?: TrustedContact[];
 }
 
 export type RelationshipType = 
@@ -85,3 +86,10 @@ export type ToxicityPattern =
   | 'SEXUAL_COERCION'
   | 'DIGITAL_ABUSE'
   | 'PROPERTY_DESTRUCTION';
+
+export interface TrustedContact {
+  id?: number;
+  email: string;
+  description?: string;
+  createdAt?: string;
+}

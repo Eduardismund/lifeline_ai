@@ -293,3 +293,91 @@ async def generate_narrative_analysis(
     logger.info(f"Narrative analysis complete: {len(narrative)} characters")
     
     return narrative.strip()
+
+
+async def generate_personalized_email_content(
+    user_id: int,
+    relationship_bond_id: int, 
+    contact_id: int
+) -> Dict[str, Any]:
+    """Generate personalized email content based on contact description"""
+    
+    # Import backend service functions
+    from services.backend_service import (
+        fetch_user_profile, 
+        fetch_relationship_bond, 
+        fetch_trusted_contact,
+        fetch_evidence_files
+    )
+    
+    # Fetch all necessary data
+    user = await fetch_user_profile(user_id)
+    bond = await fetch_relationship_bond(relationship_bond_id)
+    contact = await fetch_trusted_contact(relationship_bond_id, contact_id)
+    evidence_files = await fetch_evidence_files(relationship_bond_id)
+    
+    # Count evidence
+    evidence_count = len(evidence_files)
+    
+    # Prepare prompt for AI
+    prompt = f"""
+    You are helping create a personalized email to send a relationship analysis report to a trusted contact.
+    
+    User Name: {user.get('firstName', 'First')} {user.get('lastName', 'Name')}
+    Partner in Relationship: {bond.get('partnerName', 'Partner')}
+    
+    Recipient Email: {contact.get('email', '')}
+    Recipient Description/Role: {contact.get('description', 'trusted contact')}
+    
+    Relationship Context:
+    - Type: {bond.get('relationshipType', 'Unknown')}
+    - Current Status: {bond.get('currentStatus', 'Unknown')}
+    - Background: {bond.get('backgroundDescription', 'No description provided')}
+    - Evidence Files: {evidence_count} pieces of evidence documented
+    
+    Generate a personalized email message that:
+    1. Uses an appropriate greeting based on the recipient's role (e.g., "Dear Dr. Smith" for therapist, "Hi Mom" for mother)
+    2. Explains why they're receiving this report in a context-appropriate way
+    3. Shows the severity/importance based on the evidence count (more evidence = more serious documentation)
+    4. Maintains appropriate boundaries and tone for the recipient's relationship to the user
+    5. Ends with an appropriate closing
+    
+    Be empathetic, clear, and professional. The message should feel personal and not generic.
+    
+    Return ONLY the email body text, no subject line or metadata.
+    """
+    
+    # Call AI API
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": GROQ_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a compassionate assistant helping someone share important relationship documentation with their support network. Generate warm, personalized email messages."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.7
+    }
+    
+    response = requests.post(GROQ_API_URL, headers=headers, json=payload)
+    response.raise_for_status()
+    
+    message_body = response.json()["choices"][0]["message"]["content"].strip()
+    
+    # Return structured response
+    return {
+        "recipient_email": contact.get('email', ''),
+        "partner_name": bond.get('partnerName', 'Partner'),
+        "user_name": user.get('firstName', 'First') + ' ' + user.get('lastName', 'Name'),
+        "message_body": message_body
+    }

@@ -70,3 +70,27 @@ async def generate_pdf_report_endpoint(request: PDFGenerationRequest):
     except Exception as e:
         logger.error(f"PDF generation failed: {str(e)}")
         raise
+
+
+@router.post("/generate-personalized-email")
+async def generate_personalized_email_endpoint(request: dict):
+    """Generate personalized email content based on contact's description"""
+    try:
+        user_id = request.get('user_id')
+        relationship_bond_id = request.get('relationship_bond_id')
+        contact_id = request.get('contact_id')
+        
+        logger.info(f"Generating personalized email: user_id={user_id}, bond_id={relationship_bond_id}, contact_id={contact_id}")
+        
+        # Import the service function
+        from services.ai_service import generate_personalized_email_content
+        
+        # Generate personalized email
+        email_content = await generate_personalized_email_content(user_id, relationship_bond_id, contact_id)
+        
+        logger.info("Personalized email generated successfully")
+        return email_content
+        
+    except Exception as e:
+        logger.error(f"Email generation failed: {str(e)}")
+        raise

@@ -39,10 +39,90 @@ LifelineAI helps users identify and document toxic relationship patterns through
 - **Vite** - Build tooling
 - **EmailJS** - Secure email integration
 
-## Architecture
+## System Architecture
+
+### Component Communication Diagram
 
 ```
-Evidence Upload → S3 → EventBridge → Lambda Processing → AI Analysis → PDF Generation → Trusted Contacts
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                   FRONTEND (React)                               │
+│                                   Port: 3000                                     │
+│  • Login/Register       • Relationship Management      • Evidence Upload         │
+│  • Dashboard            • Trusted Contacts             • Report Generation       │
+└────────────────────┬──────────────────────────────────┬────────────────────────┘
+                     │                                  │
+                     │ REST API Calls                   │ Direct Upload
+                     │                                  │ (Presigned URLs)
+                     ▼                                  ▼
+┌─────────────────────────────────────┐    ┌──────────────────────────────────────┐
+│      BACKEND (Spring Boot)          │    │            AWS S3                     │
+│           Port: 8080                 │    │      Evidence Storage                 │
+│                                      │    │  • Photos  • Audio  • Video           │
+│  • User Management                   │    └────────────┬─────────────────────────┘
+│  • Relationship CRUD                 │                 │
+│  • Evidence Management               │                 │ S3 Events
+│  • Trusted Contacts                  │                 ▼
+│  • Database Operations (TiDB)        │    ┌──────────────────────────────────────┐
+│                                      │    │        AWS EventBridge               │
+└──────────┬───────────────────────────┘    │     Event Orchestration              │
+           │                                 └────────────┬─────────────────────────┘
+           │ HTTP Requests                               │
+           │ • Analysis requests                         │ Triggers
+           │ • PDF generation                            ▼
+           │ • Email personalization         ┌──────────────────────────────────────┐
+           │                                 │        AWS Lambda Functions          │
+           ▼                                 │                                      │
+┌──────────────────────────────────────┐     │  1. presigned-url-generator          │
+│     AI SERVICE (FastAPI/Python)      │     │  2. evidence-processor               │
+│           Port: 8000                 │     │  3. transcription-starter            │
+│                                      │     │  4. rekognition-starter              │
+│  • Relationship Analysis (Groq AI)   │     │  5. status-checker                   │
+│  • PDF Generation (Foxit API)        │     └────────────┬─────────────────────────┘
+│  • Email Personalization             │                 │
+│                                      │                 │ Process & Extract
+└──────────────────────────────────────┘                 ▼
+                                            ┌──────────────────────────────────────┐
+                                            │      AWS AI Services                  │
+                                            │  • Transcribe (Audio/Video → Text)   │
+                                            │  • Rekognition (Image → Text)        │
+                                            └──────────────────────────────────────┘
+```
+
+### Communication Flow
+
+1. **Frontend ↔ Backend**
+   - Data Format: JSON
+   - Operations: User auth, relationship CRUD, evidence management
+
+2. **Frontend → AWS S3**
+   - Direct upload using presigned URLs from Lambda
+   - Bypasses backend for large file transfers
+   - Reduces server load
+
+3. **Backend ↔ AI Service**
+   - Protocol: HTTP REST API
+   - Endpoints:
+     - `/analyze-relationship` - Sends evidence data, receives analysis
+     - `/generate-pdf-report` - Sends analysis, receives PDF URL
+     - `/generate-personalized-email` - Sends context, receives email content
+
+4. **AWS Services Integration**
+   - S3 → EventBridge: Automatic event triggers on file upload
+   - EventBridge → Lambda: Event-driven function invocation
+   - Lambda → AI Services: SDK calls for transcription/text extraction
+   - Lambda → DynamoDB: Status tracking and metadata storage
+
+5. **Database Connections**
+   - Backend → TiDB Cloud: Primary data storage (users, relationships, evidence metadata)
+   - Lambda → DynamoDB: Processing status and temporary data
+
+### Data Flow Example
+
+```
+User uploads evidence → Frontend gets presigned URL → Upload to S3 → 
+EventBridge triggers → Lambda processes → AI extracts text → 
+Backend requests analysis → AI Service analyzes → 
+Results saved to TiDB → PDF generated → Email sent to trusted contacts
 ```
 
 ## API Endpoints
@@ -86,7 +166,6 @@ Evidence Upload → S3 → EventBridge → Lambda Processing → AI Analysis →
 1. Configure database profile in `application.properties`:
    - Set `spring.profiles.active=local` to use your own database
    - Update credentials in `application-local.properties`
-   - Or use `spring.profiles.active=dev` for TiDB Cloud (credentials provided)
 2. Run: `./gradlew bootRun`
 
 ### AI Service Setup

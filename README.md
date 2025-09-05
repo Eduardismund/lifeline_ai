@@ -4,13 +4,13 @@ AI-powered relationship analysis platform that processes multi-modal evidence to
 
 ## Overview
 
-LifelineAI helps users identify and document toxic relationship patterns through AI analysis of uploaded evidence (text, audio, video, images). The platform generates professional PDF reports suitable for legal proceedings and facilitates secure communication with trusted contacts.
+LifelineAI helps users identify and document toxic relationship patterns through AI analysis of uploaded evidence (text, audio, video, images). The platform generates professional PDF reports and facilitates secure communication with trusted contacts.
 
 ## Key Features
 
 - **Multi-Modal Evidence Processing** - Upload and analyze text, audio, video, and image evidence
 - **AI Relationship Analysis** - Toxicity scoring (0-100) with attachment style assessment using advanced AI
-- **Professional PDF Reports** - Court-ready documentation generated via automated workflow
+- **Professional PDF Reports** - Documentation generated via automated workflow
 - **Trusted Contact Network** - Secure sharing with therapists, lawyers, family members
 - **Real-time Processing** - Event-driven architecture for immediate evidence analysis
 

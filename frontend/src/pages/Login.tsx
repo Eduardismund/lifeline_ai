@@ -5,12 +5,9 @@ import './Login.css';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    firstName: '',
-    lastName: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,32 +25,14 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      if (isLogin) {
-        await authService.login({
-          email: formData.email,
-          password: formData.password,
-        });
-        // Add a small delay to ensure state is updated
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 100);
-      } else {
-        await authService.register({
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        });
-        // After registration, automatically log in
-        await authService.login({
-          email: formData.email,
-          password: formData.password,
-        });
-        // Navigate to profile page to complete setup
-        setTimeout(() => {
-          navigate('/profile', { replace: true });
-        }, 100);
-      }
+      await authService.login({
+        email: formData.email,
+        password: formData.password,
+      });
+      // Add a small delay to ensure state is updated
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred');
     } finally {
@@ -65,7 +44,7 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <h1 className="login-title"><i className="fas fa-heart-pulse"></i> LifelineAI</h1>
-        <h2>{isLogin ? 'Welcome Back' : 'Create Your Safe Space'}</h2>
+        <h2>Welcome Back</h2>
         
         <div className="welcome-text">
           <p>A secure platform to document and understand relationship patterns for your safety and wellbeing.</p>
@@ -74,37 +53,6 @@ const Login: React.FC = () => {
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>
-          {!isLogin && (
-            <>
-              <div className="form-group">
-                <label>First Name</label>
-                <i className="fas fa-user input-icon"></i>
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required={!isLogin}
-                  disabled={loading}
-                />
-              </div>
-              <div className="form-group">
-                <label>Last Name</label>
-                <i className="fas fa-user input-icon"></i>
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required={!isLogin}
-                  disabled={loading}
-                />
-              </div>
-            </>
-          )}
-          
           <div className="form-group">
             <label>Email Address</label>
             <i className="fas fa-envelope input-icon"></i>
@@ -134,20 +82,10 @@ const Login: React.FC = () => {
           </div>
           
           <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? 'Loading...' : isLogin ? 'Login' : 'Sign Up'}
+            {loading ? 'Loading...' : 'Login'}
           </button>
         </form>
         
-        <p className="toggle-form">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            disabled={loading}
-            className="toggle-btn"
-          >
-            {isLogin ? 'Sign Up' : 'Login'}
-          </button>
-        </p>
       </div>
     </div>
   );

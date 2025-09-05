@@ -5,6 +5,164 @@
   background: linear-gradient(180deg, #fafbfd 0%, #f5f6f9 100%);
 }
 
+/* Trusted Emails Styles */
+.section-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.add-contact-form {
+  margin-bottom: 1.5rem;
+}
+
+.contact-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contact-input {
+  padding: 0.75rem;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #f1f8e9;
+  color: #2e4d32;
+  transition: all 0.3s ease;
+}
+
+.contact-input:focus {
+  outline: none;
+  border-color: #7c9885;
+  background: #e8f5e9;
+  box-shadow: 0 0 0 2px rgba(124, 152, 133, 0.2);
+}
+
+.contact-input::placeholder {
+  color: #6a8470;
+}
+
+.description-input {
+  flex: 2;
+}
+
+.add-contact-btn {
+  background: #7c9885;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease;
+  align-self: flex-start;
+}
+
+.add-contact-btn:hover:not(:disabled) {
+  background: #6a8470;
+}
+
+.add-contact-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.trusted-contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trusted-contact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.contact-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contact-email {
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.contact-description {
+  color: #666;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.send-email-btn {
+  background: #7c9885;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.3s ease;
+}
+
+.send-email-btn:hover:not(:disabled) {
+  background: #6a8470;
+}
+
+.send-email-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.remove-contact-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.3s ease;
+}
+
+.remove-contact-btn:hover {
+  background: #c82333;
+}
+
+.no-trusted-contacts {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.no-trusted-contacts p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 
 .detail-content {
   flex: 1;

@@ -57,11 +57,22 @@ public class RelationshipBondService {
         RelationshipBond bond = relationshipBondRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Relationship bond not found"));
         
-        bond.setPartnerName(updatedBond.getPartnerName());
-        bond.setRelationshipType(updatedBond.getRelationshipType());
-        bond.setBackgroundDescription(updatedBond.getBackgroundDescription());
-        bond.setRelationshipStartDate(updatedBond.getRelationshipStartDate());
-        bond.setCurrentStatus(updatedBond.getCurrentStatus());
+        if (updatedBond.getPartnerName() != null) {
+            bond.setPartnerName(updatedBond.getPartnerName());
+        }
+        if (updatedBond.getRelationshipType() != null) {
+            bond.setRelationshipType(updatedBond.getRelationshipType());
+        }
+        if (updatedBond.getBackgroundDescription() != null) {
+            bond.setBackgroundDescription(updatedBond.getBackgroundDescription());
+        }
+        if (updatedBond.getRelationshipStartDate() != null) {
+            bond.setRelationshipStartDate(updatedBond.getRelationshipStartDate());
+        }
+        if (updatedBond.getCurrentStatus() != null) {
+            bond.setCurrentStatus(updatedBond.getCurrentStatus());
+        }
+        // Trusted contacts are now managed through TrustedContactService
         bond.setLastUpdated(LocalDateTime.now());
         
         return relationshipBondRepository.save(bond);

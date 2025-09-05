@@ -21,7 +21,7 @@ exports.validatePresignedUrlRequest = (data) => {
         return { isValid: false, error: `File size cannot exceed ${MAX_FILE_SIZE / (1024 * 1024)}MB` };
     }
 
-    const allowedExtensions = ['.mp3', '.wav', '.m4a', '.mp4', '.avi', '.mov', '.wmv', '.mkv', '.webm', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    const allowedExtensions = ['.mp3', '.wav', '.m4a', '.mp4', '.avi', '.mov', '.wmv', '.mkv', '.webm', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf'];
     const fileExtension = '.' + fileName.split('.').pop().toLowerCase();
 
     if (!allowedExtensions.includes(fileExtension)) {

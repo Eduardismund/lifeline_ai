@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { RelationshipBond, EvidenceFile } from '../types/RelationshipBond';
+import { RelationshipBond, EvidenceFile, TrustedContact } from '../types/RelationshipBond';
 import { relationshipService } from '../services/relationshipService';
 import AWSService from '../services/awsService';
 import AIService, { RelationshipAnalysis } from '../services/aiService';
 import { authService } from '../services/authService';
+import { EmailService } from '../services/emailService';
+import { trustedContactService } from '../services/trustedContactService';
 import FileUpload from './FileUpload';
 import './BondDetail.css';
 
@@ -27,15 +29,33 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
     codependency: false,
     redFlags: false,
     greenFlags: false,
-    recommendations: false
+    recommendations: false,
+    trustedContacts: false
   });
+  const [newEmail, setNewEmail] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [trustedContacts, setTrustedContacts] = useState<TrustedContact[]>([]);
+  const [sendingToEmail, setSendingToEmail] = useState<string | null>(null);
+  const [pdfS3Url, setPdfS3Url] = useState<string | null>(null);
 
   useEffect(() => {
     if (bond.id) {
       loadEvidenceFiles();
       loadAnalysis();
+      loadTrustedContacts();
     }
   }, [bond.id]);
+
+  const loadTrustedContacts = async () => {
+    if (!bond.id) return;
+    
+    try {
+      const contacts = await trustedContactService.getTrustedContacts(bond.id);
+      setTrustedContacts(contacts);
+    } catch (err: any) {
+      console.error('Failed to load trusted contacts', err);
+    }
+  };
 
   const loadEvidenceFiles = async () => {
     if (!bond.id) return;
@@ -160,12 +180,72 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
     
     setPdfGenerating(true);
     try {
-      await AIService.generatePdfReport(user.id, bond.id);
+      const s3Url = await AIService.generatePdfReport(user.id, bond.id);
+      setPdfS3Url(s3Url);
+      
+      alert('PDF generated successfully!');
     } catch (err: any) {
       console.error('Failed to generate PDF:', err);
       setError('Failed to generate PDF report');
     } finally {
       setPdfGenerating(false);
+    }
+  };
+
+  const handleAddTrustedContact = async () => {
+    if (!newEmail.trim() || !bond.id) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    if (trustedContacts.some(contact => contact.email === newEmail.trim())) {
+      setError('This email is already in your trusted list');
+      return;
+    }
+    
+    try {
+      const newContact = await trustedContactService.addTrustedContact(bond.id, {
+        email: newEmail.trim(),
+        description: newDescription.trim() || undefined
+      });
+      setTrustedContacts([...trustedContacts, newContact]);
+      setNewEmail('');
+      setNewDescription('');
+      setError('');
+    } catch (err: any) {
+      setError('Failed to add trusted contact');
+      console.error(err);
+    }
+  };
+
+  const handleRemoveTrustedContact = async (contactId: number) => {
+    try {
+      await trustedContactService.deleteTrustedContact(contactId);
+      setTrustedContacts(trustedContacts.filter(contact => contact.id !== contactId));
+    } catch (err: any) {
+      setError('Failed to remove trusted contact');
+      console.error(err);
+    }
+  };
+
+  const handleSendToContact = async (contact: TrustedContact) => {
+    if (!contact.id || !bond.id) return;
+    
+    setSendingToEmail(contact.email);
+    try {
+      const user = authService.getCurrentUser();
+      if (user) {
+        await EmailService.sendPdfToTrustedContact(user.id, bond.id, contact.id, pdfS3Url || undefined);
+        alert(`Report sent successfully to ${contact.email}!`);
+      }
+    } catch (err) {
+      console.error('Failed to send email:', err);
+      alert(`Failed to send email to ${contact.email}`);
+    } finally {
+      setSendingToEmail(null);
     }
   };
 
@@ -190,7 +270,7 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
           </div>
         )}
         
-        {analysis && !analysisLoading && (
+        {analysis && !analysisLoading && (analysis.confidence_score * 100) >= 70 && (
           <div className="analysis-section">
             <div className="analysis-header-row">
               <h3><i className="fas fa-brain"></i> AI Relationship Analysis</h3>
@@ -463,23 +543,11 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
         <div className="info-section">
           <h3><i className="fas fa-clipboard-list"></i> Relationship Information</h3>
           <div className="info-grid">
-            <div className="info-row">
-              <span className="label">Analysis Status:</span>
-              <span className="value">{bond.analysisStatus}</span>
-            </div>
             {bond.relationshipStartDate && (
               <div className="info-row">
                 <span className="label">Started:</span>
                 <span className="value">
                   {new Date(bond.relationshipStartDate).toLocaleDateString()}
-                </span>
-              </div>
-            )}
-            {bond.createdAt && (
-              <div className="info-row">
-                <span className="label">Added:</span>
-                <span className="value">
-                  {new Date(bond.createdAt).toLocaleDateString()}
                 </span>
               </div>
             )}
@@ -491,6 +559,92 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
               <p>{bond.backgroundDescription}</p>
             </div>
           )}
+        </div>
+
+        {/* Trusted Emails Section */}
+        <div className="info-section">
+          <div className="analysis-expandable">
+            <div className="analysis-header" onClick={() => toggleSection('trustedContacts')}>
+              <h3><i className="fas fa-users-shield"></i> Trusted Contacts ({trustedContacts.length})</h3>
+              <i className={`fas fa-chevron-${expandedSections.trustedContacts ? 'up' : 'down'}`}></i>
+            </div>
+            {expandedSections.trustedContacts && (
+              <div className="analysis-content">
+                <p className="section-description">
+                  Add trusted contacts who can receive copies of your analysis reports. This helps ensure support people have access to important documentation.
+                </p>
+                
+                <div className="add-contact-form">
+                  <div className="contact-input-group">
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="Enter email address"
+                      className="contact-input"
+                    />
+                    <input
+                      type="text"
+                      value={newDescription}
+                      onChange={(e) => setNewDescription(e.target.value)}
+                      placeholder="Description (e.g., therapist, friend, family)"
+                      className="contact-input description-input"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddTrustedContact()}
+                    />
+                    <button 
+                      onClick={handleAddTrustedContact}
+                      className="add-contact-btn"
+                      disabled={!newEmail.trim()}
+                    >
+                      <i className="fas fa-plus"></i> Add
+                    </button>
+                  </div>
+                </div>
+                
+                {trustedContacts.length > 0 && (
+                  <div className="trusted-contacts-list">
+                    {trustedContacts.map((contact) => (
+                      <div key={contact.id} className="trusted-contact-item">
+                        <div className="contact-info">
+                          <span className="contact-email">{contact.email}</span>
+                          {contact.description && (
+                            <span className="contact-description">{contact.description}</span>
+                          )}
+                        </div>
+                        <div className="contact-actions">
+                          <button
+                            onClick={() => handleSendToContact(contact)}
+                            disabled={sendingToEmail === contact.email}
+                            className="send-email-btn"
+                            title="Send PDF report"
+                          >
+                            {sendingToEmail === contact.email ? (
+                              <><i className="fas fa-spinner fa-spin"></i></>
+                            ) : (
+                              <><i className="fas fa-paper-plane"></i></>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => contact.id && handleRemoveTrustedContact(contact.id)}
+                            className="remove-contact-btn"
+                            title="Remove contact"
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {trustedContacts.length === 0 && (
+                  <div className="no-trusted-contacts">
+                    <p>No trusted contacts added yet. Add email addresses of people you trust with your analysis reports.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="evidence-section">
@@ -573,6 +727,7 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
           </div>
         </div>
       </div>
+      
     </div>
   );
 };

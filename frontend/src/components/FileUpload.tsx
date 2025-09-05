@@ -130,7 +130,7 @@ const FileUpload: React.FC<Props> = ({ onUpload }) => {
           onClick={() => fileInputRef.current?.click()}
         >
           <div className="drop-zone-content">
-            <div className="upload-icon">📁</div>
+            <div className="upload-icon"><i className="fas fa-cloud-upload-alt"></i></div>
             <p>Drag and drop a file here, or click to select</p>
             <p className="file-types">Supports: Images, Documents, Audio, Video</p>
           </div>

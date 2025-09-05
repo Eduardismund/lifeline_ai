@@ -53,3 +53,25 @@ async def fetch_evidence_files(relationship_id: int) -> List[Dict[str, Any]]:
     except requests.RequestException as e:
         logger.error(f"Failed to fetch evidence files: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch evidence files: {str(e)}")
+
+
+async def fetch_trusted_contact(bond_id: int, contact_id: int) -> Dict[str, Any]:
+    """Fetch a specific trusted contact from Spring Boot backend"""
+    try:
+        # First fetch all trusted contacts for the bond
+        url = f"{BACKEND_BASE_URL}/trusted-contacts/bond/{bond_id}"
+        logger.info(f"Fetching trusted contacts from: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        contacts = response.json()
+        
+        # Find the specific contact
+        for contact in contacts:
+            if contact.get('id') == contact_id:
+                logger.info(f"Trusted contact found: {json.dumps(contact, indent=2)}")
+                return contact
+        
+        raise HTTPException(status_code=404, detail=f"Trusted contact with id {contact_id} not found")
+    except requests.RequestException as e:
+        logger.error(f"Failed to fetch trusted contact: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch trusted contact: {str(e)}")

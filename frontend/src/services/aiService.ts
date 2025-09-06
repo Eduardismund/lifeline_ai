@@ -1,7 +1,7 @@
 import AWSService from './awsService';
 
-const AI_API_URL = 'http://localhost:8002';
-const BACKEND_API_URL = 'http://localhost:8080';
+const AI_API_URL = '/ai'; // Nginx will proxy to ai-service:8000
+const BACKEND_API_URL = '/api';
 
 export interface RelationshipAnalysis {
   relationship_classification: string;
@@ -79,10 +79,12 @@ export class AIService {
 
   static async loadAnalysisFromBackend(relationshipBondId: number): Promise<RelationshipAnalysis | null> {
     try {
-      const response = await fetch(`${BACKEND_API_URL}/api/bond-analysis/${relationshipBondId}`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${BACKEND_API_URL}/bond-analysis/${relationshipBondId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         }
       });
 
@@ -126,13 +128,15 @@ export class AIService {
       };
 
       console.log('=== FRONTEND SAVING TO BACKEND ===');
-      console.log('URL:', `${BACKEND_API_URL}/api/bond-analysis`);
+      console.log('URL:', `${BACKEND_API_URL}/bond-analysis`);
       console.log('Request payload:', JSON.stringify(backendRequest, null, 2));
 
-      const response = await fetch(`${BACKEND_API_URL}/api/bond-analysis`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${BACKEND_API_URL}/bond-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify(backendRequest)
       });
@@ -194,7 +198,7 @@ export class AIService {
         console.log('New analysis saved to backend successfully');
       } catch (saveError) {
         console.error('Failed to save analysis to backend:', saveError);
-        throw new Error(`Analysis generated but failed to save: ${saveError.message}`);
+        throw new Error(`Analysis generated but failed to save: ${(saveError as Error).message}`);
       }
       
       return analysis;
@@ -206,10 +210,12 @@ export class AIService {
 
   static async deleteAnalysisFromBackend(relationshipBondId: number): Promise<void> {
     try {
-      await fetch(`${BACKEND_API_URL}/api/bond-analysis/${relationshipBondId}`, {
+      const token = localStorage.getItem('token');
+      await fetch(`${BACKEND_API_URL}/bond-analysis/${relationshipBondId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         }
       });
     } catch (error) {
@@ -304,10 +310,12 @@ export class AIService {
 
   static async savePdfUrlToBackend(relationshipBondId: number, s3Url: string): Promise<void> {
     try {
-      const response = await fetch(`http://localhost:8080/api/bond-analysis/pdf-url/${relationshipBondId}`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${BACKEND_API_URL}/bond-analysis/pdf-url/${relationshipBondId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({ pdfUrl: s3Url })
       });

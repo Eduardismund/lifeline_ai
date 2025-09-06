@@ -11,11 +11,9 @@ import './BondDetail.css';
 
 interface Props {
   bond: RelationshipBond;
-  onDelete: (id: number) => void;
-  onUpdate: () => void;
 }
 
-const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
+const BondDetail: React.FC<Props> = ({ bond }) => {
   const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
   const [error, setError] = useState('');
   const [playableUrls, setPlayableUrls] = useState<{ [fileId: number]: string }>({});
@@ -154,15 +152,6 @@ const BondDetail: React.FC<Props> = ({ bond, onDelete, onUpdate }) => {
     }
   };
 
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'ONGOING': return '#4caf50';
-      case 'ENDED': return '#9e9e9e';
-      case 'COMPLICATED': return '#ff9800';
-      case 'NO_CONTACT': return '#f44336';
-      default: return '#9e9e9e';
-    }
-  };
 
   const toggleSection = (sectionKey: string) => {
     setExpandedSections(prev => ({

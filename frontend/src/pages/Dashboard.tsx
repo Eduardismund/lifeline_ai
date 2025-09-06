@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
           )}
         </div>
         <div className="header-actions">
-          {selectedBond && selectedBond.analysisStatus === 'ANALYZED' && (
+          {selectedBond && selectedBond.analysisStatus && selectedBond.analysisStatus === 'COMPLETED' && (
             <div className="risk-indicator">
               <span className="risk-label">Risk Level:</span>
               <div className="risk-level-bar">
@@ -170,8 +170,6 @@ const Dashboard: React.FC = () => {
           {selectedBond ? (
             <BondDetail 
               bond={selectedBond} 
-              onDelete={handleDeleteBond}
-              onUpdate={() => loadBonds()}
             />
           ) : (
             <div className="welcome-panel">

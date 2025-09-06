@@ -157,7 +157,12 @@ export class AWSService {
       
       // Return data in format expected by frontend
       return {
+        evidenceId: result.evidenceId,
+        status: result.status,
+        fileName: result.fileName,
+        s3Key: result.s3Key,
         s3Url: result.s3Url,
+        fileType: result.fileType,
         extractedText: result.extractedText
       };
 
@@ -192,6 +197,7 @@ export class AWSService {
       const s3Url = `https://${bucketName}.s3.eu-central-1.amazonaws.com/${presignedData.key}`;
 
       return {
+        s3Key: presignedData.key,
         s3Url: s3Url,
         extractedText: undefined // Will be populated after processing
       };

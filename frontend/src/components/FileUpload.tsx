@@ -81,9 +81,9 @@ const FileUpload: React.FC<Props> = ({ onUpload }) => {
         fileType: getFileType(selectedFile.type),
         mimeType: selectedFile.type,
         evidenceDate: getFileDate(selectedFile),
-        evidenceContext: evidenceContext.trim() || null,
+        evidenceContext: evidenceContext.trim() || undefined,
         s3Url: awsResult.s3Url,
-        extractedText: awsResult.extractedText || null,
+        extractedText: awsResult.extractedText || undefined,
         processingStatus: 'EXTRACTED', // Processing completed
       };
 
